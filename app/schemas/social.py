@@ -1,14 +1,15 @@
 from typing import List, Optional
+from uuid import UUID
 from pydantic import BaseModel
 from app.schemas.enums import SocialEventType
 
 class SocialEventBase(BaseModel):
-    itemId: str
+    itemId: UUID
     title: str
     date: int
     location: Optional[str] = None
     type: SocialEventType
-    contactIds: Optional[List[str]] = None
+    contactIds: Optional[List[UUID]] = None
 
 class SocialEventCreate(SocialEventBase):
     pass
@@ -18,16 +19,16 @@ class SocialEventUpdate(BaseModel):
     date: Optional[int] = None
     location: Optional[str] = None
     type: Optional[SocialEventType] = None
-    contactIds: Optional[List[str]] = None
+    contactIds: Optional[List[UUID]] = None
 
 class SocialEvent(SocialEventBase):
-    id: str
+    id: UUID
 
     class Config:
         from_attributes = True
 
 class ContactBase(BaseModel):
-    itemId: str
+    itemId: UUID
     name: str
     birthday: Optional[int] = None
     lastContactDate: Optional[int] = None
@@ -47,7 +48,7 @@ class ContactUpdate(BaseModel):
     notes: Optional[str] = None
 
 class Contact(ContactBase):
-    id: str
+    id: UUID
 
     class Config:
         from_attributes = True

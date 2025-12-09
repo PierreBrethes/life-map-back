@@ -8,6 +8,7 @@ class LifeItemBase(BaseModel):
     value: str
     type: ItemType
     status: ItemStatus
+    categoryId: Optional[UUID] = None
     assetType: Optional[AssetType] = None
     lastUpdated: Optional[int] = None
     
@@ -40,6 +41,7 @@ class LifeItemUpdate(BaseModel):
     value: Optional[str] = None
     type: Optional[ItemType] = None
     status: Optional[ItemStatus] = None
+    categoryId: Optional[UUID] = None
     assetType: Optional[AssetType] = None
     lastUpdated: Optional[int] = None
     

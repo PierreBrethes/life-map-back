@@ -1,9 +1,10 @@
 from typing import Optional
+from uuid import UUID
 from pydantic import BaseModel
 from app.schemas.enums import HealthAppointmentType
 
 class BodyMetricBase(BaseModel):
-    itemId: str
+    itemId: UUID
     date: int
     weight: float
     height: Optional[float] = None
@@ -23,13 +24,13 @@ class BodyMetricUpdate(BaseModel):
     note: Optional[str] = None
 
 class BodyMetric(BodyMetricBase):
-    id: str
+    id: UUID
 
     class Config:
         from_attributes = True
 
 class HealthAppointmentBase(BaseModel):
-    itemId: str
+    itemId: UUID
     title: str
     date: int
     type: HealthAppointmentType
@@ -51,7 +52,7 @@ class HealthAppointmentUpdate(BaseModel):
     isCompleted: Optional[bool] = None
 
 class HealthAppointment(HealthAppointmentBase):
-    id: str
+    id: UUID
 
     class Config:
         from_attributes = True

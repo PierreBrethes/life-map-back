@@ -1,14 +1,16 @@
 from typing import Optional
-from pydantic import BaseModel
+from uuid import UUID
+from pydantic import BaseModel, Field
 from app.schemas.enums import AlertSeverity
+import time
 
 class AlertBase(BaseModel):
-    itemId: str
+    itemId: UUID
     name: str
     severity: AlertSeverity
     dueDate: Optional[int] = None
     isActive: bool = True
-    createdAt: int
+    createdAt: Optional[int] = Field(default_factory=lambda: int(time.time() * 1000))
 
 class AlertCreate(AlertBase):
     pass
@@ -21,7 +23,7 @@ class AlertUpdate(BaseModel):
     createdAt: Optional[int] = None # Generally shouldn't update creation time, but helpful for fixing data
 
 class Alert(AlertBase):
-    id: str
+    id: UUID
 
     class Config:
         from_attributes = True

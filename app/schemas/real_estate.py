@@ -1,11 +1,12 @@
 from typing import Optional
+from uuid import UUID
 from pydantic import BaseModel
 from app.schemas.enums import MaintenanceUrgency
 
 # --- Property Valuation ---
 
 class PropertyValuationBase(BaseModel):
-    itemId: str
+    itemId: UUID
     estimatedValue: float
     purchasePrice: float
     purchaseDate: int
@@ -31,7 +32,7 @@ class PropertyValuationUpdate(BaseModel):
     capitalRepaid: Optional[float] = None
 
 class PropertyValuation(PropertyValuationBase):
-    id: str
+    id: UUID
 
     class Config:
         from_attributes = True
@@ -39,7 +40,7 @@ class PropertyValuation(PropertyValuationBase):
 # --- Energy Consumption ---
 
 class EnergyConsumptionBase(BaseModel):
-    itemId: str
+    itemId: UUID
     date: int
     electricityCost: float
     electricityKwh: Optional[float] = None
@@ -57,7 +58,7 @@ class EnergyConsumptionUpdate(BaseModel):
     gasM3: Optional[float] = None
 
 class EnergyConsumption(EnergyConsumptionBase):
-    id: str
+    id: UUID
 
     class Config:
         from_attributes = True
@@ -65,7 +66,7 @@ class EnergyConsumption(EnergyConsumptionBase):
 # --- Maintenance Task ---
 
 class MaintenanceTaskBase(BaseModel):
-    itemId: str
+    itemId: UUID
     title: str
     description: Optional[str] = None
     urgency: MaintenanceUrgency
@@ -89,7 +90,7 @@ class MaintenanceTaskUpdate(BaseModel):
     # createdAt typically not updated
 
 class MaintenanceTask(MaintenanceTaskBase):
-    id: str
+    id: UUID
 
     class Config:
         from_attributes = True

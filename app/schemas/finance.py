@@ -1,9 +1,10 @@
 from typing import Optional
+from uuid import UUID
 from pydantic import BaseModel, Field
 from app.schemas.enums import HistoryCategory
 
 class HistoryEntryBase(BaseModel):
-    itemId: str
+    itemId: UUID
     date: int
     value: float
     label: str
@@ -19,13 +20,13 @@ class HistoryEntryUpdate(BaseModel):
     category: Optional[HistoryCategory] = None
 
 class HistoryEntry(HistoryEntryBase):
-    id: str
+    id: UUID
 
     class Config:
         from_attributes = True
 
 class SubscriptionBase(BaseModel):
-    itemId: str
+    itemId: UUID
     name: str
     amount: float
     billingDay: int = Field(..., ge=1, le=31)
@@ -45,7 +46,7 @@ class SubscriptionUpdate(BaseModel):
     isActive: Optional[bool] = None
 
 class Subscription(SubscriptionBase):
-    id: str
+    id: UUID
 
     class Config:
         from_attributes = True

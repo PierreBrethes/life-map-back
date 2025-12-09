@@ -1,4 +1,4 @@
-from sqlalchemy import Column, String, Integer, Float, Boolean, ForeignKey, Enum as SqEnum
+from sqlalchemy import Column, String, Integer, BigInteger, Float, Boolean, ForeignKey, Enum as SqEnum
 from sqlalchemy.dialects.postgresql import UUID
 import uuid
 from app.core.database import Base
@@ -9,10 +9,10 @@ class HistoryEntry(Base):
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     itemId = Column("item_id", UUID(as_uuid=True), ForeignKey("life_items.id"), nullable=False)
-    date = Column(Integer, nullable=False)
+    date = Column(BigInteger, nullable=False)
     value = Column(Float, nullable=False)
     label = Column(String, nullable=False)
-    category = Column(SqEnum(HistoryCategory), nullable=False)
+    category = Column(SqEnum(HistoryCategory, values_callable=lambda x: [e.value for e in x]), nullable=False)
 
 class Subscription(Base):
     __tablename__ = "subscriptions"
