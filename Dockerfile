@@ -1,0 +1,38 @@
+# Dockerfile
+
+# Stage 1: Build
+FROM python:3.11-slim as builder
+
+WORKDIR /app
+
+# Install system dependencies required for building some python packages (e.g. pgvector/asyncpg usually need gcc/headers if pre-built wheels aren't matched, but mostly fine)
+RUN apt-get update && apt-get install -y gcc libpq-dev && rm -rf /var/lib/apt/lists/*
+
+RUN pip install poetry
+
+COPY pyproject.toml ./
+# Note: poetry.lock is missing in the repo, so we skip copying it. 
+# Poetry will resolve dependencies from pyproject.toml and create a lock during install.
+
+RUN poetry config virtualenvs.create false && poetry install --no-root --without dev --no-interaction --no-ansi
+
+# Stage 2: Run
+FROM python:3.11-slim
+
+WORKDIR /app
+
+# Install runtime libs like libpq if needed for asyncpg (usually needed)
+RUN apt-get update && apt-get install -y libpq-dev && rm -rf /var/lib/apt/lists/*
+
+# Copy installed packages and executables
+COPY --from=builder /usr/local/lib/python3.11/site-packages /usr/local/lib/python3.11/site-packages
+COPY --from=builder /usr/local/bin /usr/local/bin
+
+COPY . .
+
+# Create a non-root user
+RUN adduser --disabled-password --gecos "" appuser
+USER appuser
+
+# Use python -m uvicorn for reliability
+CMD ["python", "-m", "uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
