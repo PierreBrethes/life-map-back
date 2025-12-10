@@ -37,3 +37,6 @@ class LifeItem(Base):
     address = Column(String, nullable=True)
     city = Column(String, nullable=True)
     postalCode = Column("postal_code", String, nullable=True)
+    
+    # Garage/Vehicle
+    mileage = Column(Integer, nullable=True)  # Current mileage in km

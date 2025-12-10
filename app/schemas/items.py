@@ -26,6 +26,9 @@ class LifeItemBase(BaseModel):
     address: Optional[str] = None
     city: Optional[str] = None
     postalCode: Optional[str] = None
+    
+    # Garage/Vehicle specific
+    mileage: Optional[int] = None  # Current mileage in km
 
 class LifeItem(LifeItemBase):
     id: UUID
@@ -59,3 +62,6 @@ class LifeItemUpdate(BaseModel):
     address: Optional[str] = None
     city: Optional[str] = None
     postalCode: Optional[str] = None
+    
+    # Garage/Vehicle specific
+    mileage: Optional[int] = None  # Current mileage in km
