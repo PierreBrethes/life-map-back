@@ -1,3 +1,6 @@
+import time
+from datetime import datetime, timezone
+from calendar import monthrange
 from uuid import UUID
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
@@ -105,7 +108,6 @@ class FinanceService:
         return await self.db.get(RecurringTransaction, recurring_id)
 
     async def create_recurring_transaction(self, recurring_in: RecurringTransactionCreate) -> RecurringTransaction:
-        import time
         now = int(time.time() * 1000)
         db_recurring = RecurringTransaction(
             **recurring_in.model_dump(),
@@ -118,7 +120,6 @@ class FinanceService:
         return db_recurring
 
     async def update_recurring_transaction(self, recurring_id: UUID, recurring_in: RecurringTransactionUpdate) -> Optional[RecurringTransaction]:
-        import time
         db_recurring = await self.get_recurring_transaction(recurring_id)
         if not db_recurring:
             return None
@@ -142,10 +143,6 @@ class FinanceService:
 
     async def process_recurring_transactions(self) -> dict:
         """Process all active recurring transactions and create missing history entries."""
-        import time
-        from datetime import datetime, timezone
-        from calendar import monthrange
-        
         now_ms = int(time.time() * 1000)
         today = datetime.now(timezone.utc)
         processed_count = 0
@@ -234,7 +231,6 @@ class FinanceService:
 
     async def migrate_subscriptions_to_recurring(self) -> dict:
         """Migrate existing Subscription records to RecurringTransaction."""
-        import time
         
         now_ms = int(time.time() * 1000)
         migrated_count = 0

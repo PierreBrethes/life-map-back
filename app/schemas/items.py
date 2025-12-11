@@ -1,6 +1,6 @@
 from typing import List, Optional
 from uuid import UUID
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
 from app.schemas.enums import ItemType, ItemStatus, AssetType
 
 class LifeItemBase(BaseModel):
@@ -34,10 +34,8 @@ class LifeItemBase(BaseModel):
     widgetOrder: Optional[List[str]] = None  # Array of widget type strings
 
 class LifeItem(LifeItemBase):
+    model_config = ConfigDict(from_attributes=True)
     id: UUID
-
-    class Config:
-        from_attributes = True
 
 class LifeItemCreate(LifeItemBase):
     pass

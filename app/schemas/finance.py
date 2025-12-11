@@ -1,6 +1,6 @@
 from typing import Optional
 from uuid import UUID
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
 from app.schemas.enums import HistoryCategory
 
 class HistoryEntryBase(BaseModel):
@@ -20,10 +20,8 @@ class HistoryEntryUpdate(BaseModel):
     category: Optional[HistoryCategory] = None
 
 class HistoryEntry(HistoryEntryBase):
+    model_config = ConfigDict(from_attributes=True)
     id: UUID
-
-    class Config:
-        from_attributes = True
 
 class SubscriptionBase(BaseModel):
     itemId: UUID
@@ -46,10 +44,8 @@ class SubscriptionUpdate(BaseModel):
     isActive: Optional[bool] = None
 
 class Subscription(SubscriptionBase):
+    model_config = ConfigDict(from_attributes=True)
     id: UUID
-
-    class Config:
-        from_attributes = True
 
 # Recurring Transactions
 
@@ -85,13 +81,11 @@ class RecurringTransactionUpdate(BaseModel):
     endDate: Optional[int] = None
 
 class RecurringTransaction(RecurringTransactionBase):
+    model_config = ConfigDict(from_attributes=True)
     id: UUID
     lastProcessedDate: Optional[int] = None
     createdAt: int
     updatedAt: int
-
-    class Config:
-        from_attributes = True
 
 class SyncResult(BaseModel):
     processedCount: int
@@ -101,3 +95,4 @@ class MigrationResult(BaseModel):
     migratedCount: int
     skippedCount: int
     errors: list[str] = []
+
