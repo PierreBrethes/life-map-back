@@ -50,3 +50,54 @@ class Subscription(SubscriptionBase):
 
     class Config:
         from_attributes = True
+
+# Recurring Transactions
+
+class RecurringTransactionBase(BaseModel):
+    sourceType: str  # subscription, salary, rent, insurance, custom
+    sourceItemId: Optional[UUID] = None
+    targetAccountId: UUID
+    amount: float
+    dayOfMonth: int = Field(..., ge=1, le=31)
+    label: str
+    category: HistoryCategory
+    icon: Optional[str] = None
+    color: Optional[str] = None
+    isActive: bool = True
+    startDate: int  # Timestamp ms
+    endDate: Optional[int] = None
+
+class RecurringTransactionCreate(RecurringTransactionBase):
+    pass
+
+class RecurringTransactionUpdate(BaseModel):
+    sourceType: Optional[str] = None
+    sourceItemId: Optional[UUID] = None
+    targetAccountId: Optional[UUID] = None
+    amount: Optional[float] = None
+    dayOfMonth: Optional[int] = Field(None, ge=1, le=31)
+    label: Optional[str] = None
+    category: Optional[HistoryCategory] = None
+    icon: Optional[str] = None
+    color: Optional[str] = None
+    isActive: Optional[bool] = None
+    startDate: Optional[int] = None
+    endDate: Optional[int] = None
+
+class RecurringTransaction(RecurringTransactionBase):
+    id: UUID
+    lastProcessedDate: Optional[int] = None
+    createdAt: int
+    updatedAt: int
+
+    class Config:
+        from_attributes = True
+
+class SyncResult(BaseModel):
+    processedCount: int
+    errors: list[str] = []
+
+class MigrationResult(BaseModel):
+    migratedCount: int
+    skippedCount: int
+    errors: list[str] = []

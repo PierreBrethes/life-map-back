@@ -6,9 +6,12 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.database import get_db
 from app.schemas.finance import (
     HistoryEntry, HistoryEntryCreate, HistoryEntryUpdate,
-    Subscription, SubscriptionCreate, SubscriptionUpdate
+    Subscription, SubscriptionCreate, SubscriptionUpdate,
+    RecurringTransaction, RecurringTransactionCreate, RecurringTransactionUpdate,
+    SyncResult, MigrationResult
 )
 from app.services.finance_service import FinanceService
+
 
 router = APIRouter()
 
@@ -110,3 +113,67 @@ async def delete_subscription(
     success = await service.delete_subscription(subscription_id)
     if not success:
         raise HTTPException(status_code=404, detail="Subscription not found")
+
+# Recurring Transactions
+
+@router.get("/recurring", response_model=List[RecurringTransaction])
+async def read_recurring_transactions(
+    account_id: Optional[UUID] = Query(None, description="Filter by Account ID"),
+    skip: int = 0,
+    limit: int = 100,
+    service: FinanceService = Depends(get_finance_service)
+):
+    return await service.get_recurring_transactions(account_id=account_id, skip=skip, limit=limit)
+
+@router.post("/recurring", response_model=RecurringTransaction, status_code=status.HTTP_201_CREATED)
+async def create_recurring_transaction(
+    recurring_in: RecurringTransactionCreate,
+    service: FinanceService = Depends(get_finance_service)
+):
+    return await service.create_recurring_transaction(recurring_in)
+
+@router.get("/recurring/{recurring_id}", response_model=RecurringTransaction)
+async def read_recurring_transaction(
+    recurring_id: UUID,
+    service: FinanceService = Depends(get_finance_service)
+):
+    recurring = await service.get_recurring_transaction(recurring_id)
+    if not recurring:
+        raise HTTPException(status_code=404, detail="Recurring transaction not found")
+    return recurring
+
+@router.put("/recurring/{recurring_id}", response_model=RecurringTransaction)
+async def update_recurring_transaction(
+    recurring_id: UUID,
+    recurring_in: RecurringTransactionUpdate,
+    service: FinanceService = Depends(get_finance_service)
+):
+    recurring = await service.update_recurring_transaction(recurring_id, recurring_in)
+    if not recurring:
+        raise HTTPException(status_code=404, detail="Recurring transaction not found")
+    return recurring
+
+@router.delete("/recurring/{recurring_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_recurring_transaction(
+    recurring_id: UUID,
+    service: FinanceService = Depends(get_finance_service)
+):
+    success = await service.delete_recurring_transaction(recurring_id)
+    if not success:
+        raise HTTPException(status_code=404, detail="Recurring transaction not found")
+
+@router.post("/recurring/sync", response_model=SyncResult)
+async def sync_recurring_transactions(
+    service: FinanceService = Depends(get_finance_service)
+):
+    """Manually trigger synchronization of recurring transactions."""
+    result = await service.process_recurring_transactions()
+    return SyncResult(**result)
+
+@router.post("/recurring/migrate", response_model=MigrationResult)
+async def migrate_subscriptions(
+    service: FinanceService = Depends(get_finance_service)
+):
+    """Migrate existing Subscriptions to RecurringTransactions."""
+    result = await service.migrate_subscriptions_to_recurring()
+    return MigrationResult(**result)

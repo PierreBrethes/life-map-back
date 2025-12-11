@@ -1,4 +1,4 @@
-from sqlalchemy import Column, String, Integer, Float, Boolean, ForeignKey, Enum as SqEnum
+from sqlalchemy import Column, String, Integer, Float, Boolean, ForeignKey, Enum as SqEnum, JSON
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 import uuid
@@ -40,3 +40,7 @@ class LifeItem(Base):
     
     # Garage/Vehicle
     mileage = Column(Integer, nullable=True)  # Current mileage in km
+    
+    # Widget customization
+    widgetOrder = Column("widget_order", JSON, nullable=True, default=None)  # Array of widget type strings
+

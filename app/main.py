@@ -6,17 +6,39 @@ from app.api.v1.endpoints import (
 )
 
 from contextlib import asynccontextmanager
-from app.core.database import engine, Base
+from app.core.database import engine, Base, AsyncSessionLocal
 # Import models to ensure they are registered with Base.metadata
 from app import models 
+
+# APScheduler for CRON jobs
+from apscheduler.schedulers.asyncio import AsyncIOScheduler
+from app.services.finance_service import FinanceService
+
+scheduler = AsyncIOScheduler()
+
+async def process_recurring_job():
+    """CRON job to process recurring transactions daily."""
+    async with AsyncSessionLocal() as session:
+        service = FinanceService(session)
+        result = await service.process_recurring_transactions()
+        print(f"[CRON] Recurring transactions processed: {result}")
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # Startup: Create tables
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
+    
+    # Start scheduler for recurring transactions
+    scheduler.add_job(process_recurring_job, 'cron', hour=0, minute=1, id='recurring_sync')
+    scheduler.start()
+    print("[STARTUP] APScheduler started - recurring sync scheduled daily at 00:01")
+    
     yield
-    # Shutdown (if needed)
+    
+    # Shutdown
+    scheduler.shutdown()
+    print("[SHUTDOWN] APScheduler stopped")
 
 app = FastAPI(title=settings.PROJECT_NAME, lifespan=lifespan)
 
@@ -55,3 +77,4 @@ app.include_router(settings_endpoint.router, prefix="/api/v1/settings", tags=["s
 @app.get("/")
 async def root():
     return {"message": "Welcome to LifeMap Agent API"}
+

@@ -4,7 +4,7 @@ from uuid import UUID
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db
-from app.schemas.items import LifeItem, LifeItemCreate, LifeItemUpdate
+from app.schemas.items import LifeItem, LifeItemCreate, LifeItemUpdate, WidgetOrderUpdate
 from app.services.item_service import ItemService
 
 router = APIRouter()
@@ -56,3 +56,15 @@ async def delete_item(
     success = await service.delete_item(item_id)
     if not success:
         raise HTTPException(status_code=404, detail="Item not found")
+
+@router.put("/{item_id}/widget-order", response_model=LifeItem)
+async def update_widget_order(
+    item_id: UUID,
+    widget_order_in: WidgetOrderUpdate,
+    service: ItemService = Depends(get_item_service)
+):
+    """Update the widget order for an item."""
+    item = await service.update_widget_order(item_id, widget_order_in.order)
+    if not item:
+        raise HTTPException(status_code=404, detail="Item not found")
+    return item

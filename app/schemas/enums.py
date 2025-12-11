@@ -101,3 +101,10 @@ class HealthAppointmentType(str, Enum):
 class AlertSeverity(str, Enum):
     WARNING = 'warning'
     CRITICAL = 'critical'
+
+class RecurringSourceType(str, Enum):
+    SUBSCRIPTION = 'subscription'
+    SALARY = 'salary'
+    RENT = 'rent'
+    INSURANCE = 'insurance'
+    CUSTOM = 'custom'

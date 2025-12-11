@@ -29,6 +29,9 @@ class LifeItemBase(BaseModel):
     
     # Garage/Vehicle specific
     mileage: Optional[int] = None  # Current mileage in km
+    
+    # Widget customization
+    widgetOrder: Optional[List[str]] = None  # Array of widget type strings
 
 class LifeItem(LifeItemBase):
     id: UUID
@@ -65,3 +68,9 @@ class LifeItemUpdate(BaseModel):
     
     # Garage/Vehicle specific
     mileage: Optional[int] = None  # Current mileage in km
+    
+    # Widget customization
+    widgetOrder: Optional[List[str]] = None  # Array of widget type strings
+
+class WidgetOrderUpdate(BaseModel):
+    order: List[str]
