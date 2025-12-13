@@ -12,7 +12,7 @@ services:
       - postgres
     volumes:
       - .:/app # Hot-reload pour le dev (attention à enlever en prod)
-    command: python -m uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+    command: [ "python", "-m", "uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload" ]
 
   postgres:
     image: pgvector/pgvector:pg16
@@ -22,7 +22,7 @@ services:
       POSTGRES_PASSWORD: postgres
       POSTGRES_DB: lifemap-postgres
     ports:
-      - "5432:5432"
+      - "5433:5432"
     volumes:
       - postgres_agent_data:/var/lib/postgresql/data
     healthcheck:

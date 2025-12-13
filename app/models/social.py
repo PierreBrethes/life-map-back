@@ -8,7 +8,7 @@ class SocialEvent(Base):
     __tablename__ = "social_events"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    itemId = Column("item_id", UUID(as_uuid=True), ForeignKey("life_items.id"), nullable=False)
+    itemId = Column("item_id", UUID(as_uuid=True), ForeignKey("life_items.id", ondelete="CASCADE"), nullable=False)
     title = Column(String, nullable=False)
     date = Column(BigInteger, nullable=False) # Timestamp in milliseconds
     location = Column(String, nullable=True)
@@ -19,7 +19,7 @@ class Contact(Base):
     __tablename__ = "contacts"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    itemId = Column("item_id", UUID(as_uuid=True), ForeignKey("life_items.id"), nullable=False)
+    itemId = Column("item_id", UUID(as_uuid=True), ForeignKey("life_items.id", ondelete="CASCADE"), nullable=False)
     name = Column(String, nullable=False)
     birthday = Column(BigInteger, nullable=True)
     lastContactDate = Column("last_contact_date", BigInteger, nullable=True)

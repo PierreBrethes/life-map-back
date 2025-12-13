@@ -9,7 +9,7 @@ class LifeItem(Base):
     __tablename__ = "life_items"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    categoryId = Column("category_id", UUID(as_uuid=True), ForeignKey("categories.id"), nullable=True) # Nullable for now to ease migration, but should be required eventually
+    categoryId = Column("category_id", UUID(as_uuid=True), ForeignKey("categories.id", ondelete="CASCADE"), nullable=True) # Nullable for now to ease migration, but should be required eventually
     
     name = Column(String, nullable=False)
     value = Column(String, nullable=True)

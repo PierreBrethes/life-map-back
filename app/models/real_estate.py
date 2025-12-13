@@ -8,7 +8,7 @@ class PropertyValuation(Base):
     __tablename__ = "property_valuations"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    itemId = Column("item_id", UUID(as_uuid=True), ForeignKey("life_items.id"), nullable=False)
+    itemId = Column("item_id", UUID(as_uuid=True), ForeignKey("life_items.id", ondelete="CASCADE"), nullable=False)
     estimatedValue = Column("estimated_value", Float, nullable=False)
     purchasePrice = Column("purchase_price", Float, nullable=False)
     purchaseDate = Column("purchase_date", BigInteger, nullable=False)
@@ -23,7 +23,7 @@ class EnergyConsumption(Base):
     __tablename__ = "energy_consumption"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    itemId = Column("item_id", UUID(as_uuid=True), ForeignKey("life_items.id"), nullable=False)
+    itemId = Column("item_id", UUID(as_uuid=True), ForeignKey("life_items.id", ondelete="CASCADE"), nullable=False)
     date = Column(BigInteger, nullable=False)
     electricityCost = Column("electricity_cost", Float, nullable=False)
     electricityKwh = Column("electricity_kwh", Float, nullable=True)
@@ -34,7 +34,7 @@ class MaintenanceTask(Base):
     __tablename__ = "maintenance_tasks"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    itemId = Column("item_id", UUID(as_uuid=True), ForeignKey("life_items.id"), nullable=False)
+    itemId = Column("item_id", UUID(as_uuid=True), ForeignKey("life_items.id", ondelete="CASCADE"), nullable=False)
     title = Column(String, nullable=False)
     description = Column(String, nullable=True)
     urgency = Column(SqEnum(MaintenanceUrgency, values_callable=lambda x: [e.value for e in x]), nullable=False)

@@ -10,9 +10,7 @@ RUN apt-get update && apt-get install -y gcc libpq-dev && rm -rf /var/lib/apt/li
 
 RUN pip install poetry
 
-COPY pyproject.toml ./
-# Note: poetry.lock is missing in the repo, so we skip copying it. 
-# Poetry will resolve dependencies from pyproject.toml and create a lock during install.
+COPY pyproject.toml poetry.lock ./
 
 RUN poetry config virtualenvs.create false && poetry install --no-root --without dev --no-interaction --no-ansi
 
@@ -30,9 +28,13 @@ COPY --from=builder /usr/local/bin /usr/local/bin
 
 COPY . .
 
+# Make entrypoint executable (and fix Windows line endings)
+RUN sed -i 's/\r$//' entrypoint.sh && chmod +x entrypoint.sh
+
 # Create a non-root user
 RUN adduser --disabled-password --gecos "" appuser
 USER appuser
 
-# Use python -m uvicorn for reliability
+# Entrypoint runs migrations, then CMD starts the server
+ENTRYPOINT ["./entrypoint.sh"]
 CMD ["python", "-m", "uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]

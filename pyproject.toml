@@ -16,6 +16,7 @@ asyncpg = "^0.29.0"
 sqlalchemy = "^2.0.25"
 pgvector = "^0.2.4" # Helpful for vector ops with sqlalchemy if needed, though raw SQL or specialized libs might be used.
 apscheduler = "^3.10.4"  # For CRON job scheduling
+alembic = "^1.17.2"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.0.0"

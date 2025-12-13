@@ -8,7 +8,7 @@ class BodyMetric(Base):
     __tablename__ = "body_metrics"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    itemId = Column("item_id", UUID(as_uuid=True), ForeignKey("life_items.id"), nullable=False)
+    itemId = Column("item_id", UUID(as_uuid=True), ForeignKey("life_items.id", ondelete="CASCADE"), nullable=False)
     date = Column(BigInteger, nullable=False)
     weight = Column(Float, nullable=False)
     height = Column(Float, nullable=True)
@@ -20,7 +20,7 @@ class HealthAppointment(Base):
     __tablename__ = "health_appointments"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    itemId = Column("item_id", UUID(as_uuid=True), ForeignKey("life_items.id"), nullable=False)
+    itemId = Column("item_id", UUID(as_uuid=True), ForeignKey("life_items.id", ondelete="CASCADE"), nullable=False)
     title = Column(String, nullable=False)
     date = Column(BigInteger, nullable=False)
     type = Column(SqEnum(HealthAppointmentType, values_callable=lambda x: [e.value for e in x]), nullable=False)
