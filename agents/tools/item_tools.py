@@ -1,0 +1,181 @@
+"""
+Item tools for the LifeMap ADK Agent.
+
+Async tools that directly call ItemService with database sessions.
+"""
+from typing import Optional
+from agents.dependencies import get_async_session
+from app.services.item_service import ItemService
+
+
+def _serialize_item(item) -> dict:
+    """Serialize a LifeItem ORM object to dict for agent response."""
+    return {
+        "id": str(item.id),
+        "name": item.name,
+        "value": item.value,
+        "status": item.status,
+        "icon": item.icon,
+        "color": item.color,
+        "category_id": str(item.categoryId) if item.categoryId else None,
+        "asset_type": item.assetType,
+        "mileage": item.mileage,
+    }
+
+
+# === PUBLIC TOOLS (Exposed to ADK Agent) ===
+
+async def get_all_items() -> dict:
+    """
+    Récupère tous les items (blocs) de l'utilisateur.
+    Retourne une liste de tous les items avec leurs détails.
+    """
+    try:
+        async with get_async_session() as session:
+            service = ItemService(session)
+            items = await service.get_items()
+            serialized = [_serialize_item(item) for item in items]
+            
+            return {"status": "success", "count": len(serialized), "items": serialized}
+    except Exception as e:
+        return {"status": "error", "message": str(e)}
+
+
+async def get_item_by_id(item_id: str) -> dict:
+    """
+    Récupère un item spécifique par son ID.
+    
+    Args:
+        item_id: L'identifiant UUID de l'item à récupérer
+    """
+    try:
+        from uuid import UUID
+        async with get_async_session() as session:
+            service = ItemService(session)
+            item = await service.get_item(UUID(item_id))
+            
+            if not item:
+                return {"status": "not_found", "message": f"Item {item_id} non trouvé"}
+            
+            return {"status": "success", "item": _serialize_item(item)}
+    except Exception as e:
+        return {"status": "error", "message": str(e)}
+
+
+async def create_item(
+    name: str,
+    category_id: str,
+    value: Optional[float] = None,
+    status: str = "ok",
+    icon: Optional[str] = None,
+    color: Optional[str] = None,
+    asset_type: Optional[str] = None
+) -> dict:
+    """
+    Crée un nouvel item (bloc) sur une île.
+    
+    Args:
+        name: Nom de l'item
+        category_id: ID de la catégorie (île) parent
+        value: Valeur numérique optionnelle
+        status: Statut de l'item ('ok', 'warning', 'critical')
+        icon: Icône optionnelle
+        color: Couleur optionnelle (hex)
+        asset_type: Type d'asset 3D optionnel
+    """
+    try:
+        from uuid import UUID
+        from app.schemas.items import LifeItemCreate
+        
+        item_data = LifeItemCreate(
+            name=name,
+            categoryId=UUID(category_id),
+            status=status,
+            value=str(value) if value is not None else None,
+            icon=icon,
+            color=color,
+            assetType=asset_type,
+        )
+        
+        async with get_async_session() as session:
+            service = ItemService(session)
+            item = await service.create_item(item_data)
+            
+            return {"status": "success", "item": _serialize_item(item)}
+    except Exception as e:
+        return {"status": "error", "message": str(e)}
+
+
+async def update_item(
+    item_id: str,
+    name: Optional[str] = None,
+    value: Optional[float] = None,
+    status: Optional[str] = None,
+    icon: Optional[str] = None,
+    color: Optional[str] = None,
+    mileage: Optional[int] = None
+) -> dict:
+    """
+    Met à jour un item existant.
+    
+    Args:
+        item_id: ID de l'item à modifier
+        name: Nouveau nom (optionnel)
+        value: Nouvelle valeur (optionnel)
+        status: Nouveau statut ('ok', 'warning', 'critical') (optionnel)
+        icon: Nouvelle icône (optionnel)
+        color: Nouvelle couleur (optionnel)
+        mileage: Nouveau kilométrage pour véhicules (optionnel)
+    """
+    try:
+        from uuid import UUID
+        from app.schemas.items import LifeItemUpdate
+        
+        update_data = {}
+        if name is not None:
+            update_data["name"] = name
+        if value is not None:
+            update_data["value"] = str(value)
+        if status is not None:
+            update_data["status"] = status
+        if icon is not None:
+            update_data["icon"] = icon
+        if color is not None:
+            update_data["color"] = color
+        if mileage is not None:
+            update_data["mileage"] = mileage
+        
+        if not update_data:
+            return {"status": "error", "message": "Aucun champ à modifier fourni"}
+        
+        async with get_async_session() as session:
+            service = ItemService(session)
+            item = await service.update_item(UUID(item_id), LifeItemUpdate(**update_data))
+            
+            if not item:
+                return {"status": "not_found", "message": f"Item {item_id} non trouvé"}
+            
+            return {"status": "success", "item": _serialize_item(item)}
+    except Exception as e:
+        return {"status": "error", "message": str(e)}
+
+
+async def delete_item(item_id: str) -> dict:
+    """
+    Supprime un item.
+    
+    Args:
+        item_id: ID de l'item à supprimer
+    """
+    try:
+        from uuid import UUID
+        async with get_async_session() as session:
+            service = ItemService(session)
+            success = await service.delete_item(UUID(item_id))
+            
+            if not success:
+                return {"status": "not_found", "message": f"Item {item_id} non trouvé"}
+            
+            return {"status": "success", "message": f"Item {item_id} supprimé"}
+    except Exception as e:
+        return {"status": "error", "message": str(e)}
