@@ -15,9 +15,9 @@ from app.api.endpoints import (
     agent, items, social, health, finance, alerts, real_estate,
     categories, dependencies, settings as settings_endpoint
 )
+from app.api.v1.endpoints import assets
 
 from contextlib import asynccontextmanager
-from app.core.database import engine, Base, AsyncSessionLocal
 from app import models  # Register models with Base.metadata
 
 # APScheduler for CRON jobs
@@ -97,6 +97,7 @@ app.include_router(finance.router, prefix="/api/finance", tags=["finance"])
 app.include_router(alerts.router, prefix="/api/alerts", tags=["alerts"])
 app.include_router(real_estate.router, prefix="/api/real-estate", tags=["real-estate"])
 app.include_router(settings_endpoint.router, prefix="/api/settings", tags=["settings"])
+app.include_router(assets.router, prefix="/api/assets", tags=["assets"])
 
 
 @app.get("/", tags=["root"])

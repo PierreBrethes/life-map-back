@@ -17,7 +17,8 @@ def _serialize_metric(metric) -> dict:
         "weight": metric.weight,
         "height": metric.height,
         "body_fat": metric.bodyFat,
-        "bmi": metric.bmi if hasattr(metric, 'bmi') else None,
+        "muscle_mass": metric.muscleMass if hasattr(metric, 'muscleMass') else None,
+        "note": metric.note if hasattr(metric, 'note') else None,
     }
 
 
@@ -26,13 +27,13 @@ def _serialize_appointment(apt) -> dict:
     return {
         "id": str(apt.id),
         "item_id": str(apt.itemId) if apt.itemId else None,
-        "type": apt.type,
+        "type": apt.type.value if apt.type else None,
         "title": apt.title,
         "date": apt.date,
         "doctor_name": apt.doctorName if hasattr(apt, 'doctorName') else None,
         "location": apt.location if hasattr(apt, 'location') else None,
         "notes": apt.notes if hasattr(apt, 'notes') else None,
-        "reminder_days": apt.reminderDays if hasattr(apt, 'reminderDays') else 7,
+        "is_completed": apt.isCompleted if hasattr(apt, 'isCompleted') else False,
     }
 
 
@@ -61,9 +62,11 @@ async def get_body_metrics(item_id: Optional[str] = None) -> dict:
 async def add_body_metric(
     item_id: str,
     date: int,
-    weight: Optional[float] = None,
+    weight: float,
     height: Optional[float] = None,
-    body_fat: Optional[float] = None
+    body_fat: Optional[float] = None,
+    muscle_mass: Optional[float] = None,
+    note: Optional[str] = None
 ) -> dict:
     """
     Ajoute une mesure corporelle.
@@ -71,9 +74,11 @@ async def add_body_metric(
     Args:
         item_id: ID de l'item santé associé
         date: Date en timestamp milliseconds
-        weight: Poids en kg (optionnel)
+        weight: Poids en kg
         height: Taille en cm (optionnel)
         body_fat: Masse grasse en % (optionnel)
+        muscle_mass: Masse musculaire en % (optionnel)
+        note: Note (optionnel)
     """
     try:
         from uuid import UUID
@@ -85,6 +90,8 @@ async def add_body_metric(
             weight=weight,
             height=height,
             bodyFat=body_fat,
+            muscleMass=muscle_mass,
+            note=note,
         )
         
         async with get_async_session() as session:
@@ -146,8 +153,7 @@ async def create_health_appointment(
     date: int,
     doctor_name: Optional[str] = None,
     location: Optional[str] = None,
-    notes: Optional[str] = None,
-    reminder_days: int = 7
+    notes: Optional[str] = None
 ) -> dict:
     """
     Crée un rendez-vous santé.
@@ -160,21 +166,20 @@ async def create_health_appointment(
         doctor_name: Nom du médecin (optionnel)
         location: Lieu (optionnel)
         notes: Notes (optionnel)
-        reminder_days: Jours avant rappel (défaut: 7)
     """
     try:
         from uuid import UUID
         from app.schemas.health import HealthAppointmentCreate
+        from app.schemas.enums import HealthAppointmentType
         
         apt_data = HealthAppointmentCreate(
             itemId=UUID(item_id),
-            type=appointment_type,
+            type=HealthAppointmentType(appointment_type),
             title=title,
             date=date,
             doctorName=doctor_name,
             location=location,
             notes=notes,
-            reminderDays=reminder_days,
         )
         
         async with get_async_session() as session:
@@ -192,7 +197,8 @@ async def update_health_appointment(
     date: Optional[int] = None,
     doctor_name: Optional[str] = None,
     location: Optional[str] = None,
-    notes: Optional[str] = None
+    notes: Optional[str] = None,
+    is_completed: Optional[bool] = None
 ) -> dict:
     """
     Met à jour un rendez-vous santé.
@@ -204,6 +210,7 @@ async def update_health_appointment(
         doctor_name: Nouveau médecin (optionnel)
         location: Nouveau lieu (optionnel)
         notes: Nouvelles notes (optionnel)
+        is_completed: Marquer comme terminé (optionnel)
     """
     try:
         from uuid import UUID
@@ -220,6 +227,8 @@ async def update_health_appointment(
             update_data["location"] = location
         if notes is not None:
             update_data["notes"] = notes
+        if is_completed is not None:
+            update_data["isCompleted"] = is_completed
         
         if not update_data:
             return {"status": "error", "message": "Aucun champ à modifier fourni"}

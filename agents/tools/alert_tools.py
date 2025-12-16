@@ -14,12 +14,10 @@ def _serialize_alert(alert) -> dict:
     return {
         "id": str(alert.id),
         "item_id": str(alert.itemId) if alert.itemId else None,
-        "type": alert.type,
-        "title": alert.title if hasattr(alert, 'title') else alert.name,
-        "message": alert.message if hasattr(alert, 'message') else None,
+        "name": alert.name,
+        "severity": alert.severity.value if alert.severity else None,
         "due_date": alert.dueDate,
-        "is_read": alert.isRead if hasattr(alert, 'isRead') else False,
-        "priority": alert.priority if hasattr(alert, 'priority') else "medium",
+        "is_active": alert.isActive if hasattr(alert, 'isActive') else True,
         "created_at": alert.createdAt if hasattr(alert, 'createdAt') else None,
     }
 
@@ -69,35 +67,32 @@ async def get_alert_by_id(alert_id: str) -> dict:
 
 async def create_alert(
     item_id: str,
-    alert_type: str,
-    title: str,
-    due_date: int,
-    message: Optional[str] = None,
-    priority: str = "medium"
+    name: str,
+    severity: str,
+    due_date: Optional[int] = None,
+    is_active: bool = True
 ) -> dict:
     """
     Crée une nouvelle alerte.
     
     Args:
         item_id: ID de l'item associé
-        alert_type: Type d'alerte ('insurance', 'maintenance', 'payment', 'expiry', 'custom')
-        title: Titre de l'alerte
-        due_date: Date d'échéance (timestamp ms)
-        message: Message détaillé (optionnel)
-        priority: Priorité ('low', 'medium', 'high')
+        name: Nom de l'alerte
+        severity: Sévérité ('low', 'medium', 'high', 'critical')
+        due_date: Date d'échéance (timestamp ms, optionnel)
+        is_active: Si l'alerte est active (défaut: True)
     """
     try:
         from uuid import UUID
         from app.schemas.alerts import AlertCreate
+        from app.schemas.enums import AlertSeverity
         
         alert_data = AlertCreate(
             itemId=UUID(item_id),
-            type=alert_type,
-            name=title,
+            name=name,
+            severity=AlertSeverity(severity),
             dueDate=due_date,
-            message=message,
-            priority=priority,
-            isRead=False,
+            isActive=is_active,
         )
         
         async with get_async_session() as session:
@@ -111,38 +106,35 @@ async def create_alert(
 
 async def update_alert(
     alert_id: str,
-    title: Optional[str] = None,
-    message: Optional[str] = None,
+    name: Optional[str] = None,
+    severity: Optional[str] = None,
     due_date: Optional[int] = None,
-    is_read: Optional[bool] = None,
-    priority: Optional[str] = None
+    is_active: Optional[bool] = None
 ) -> dict:
     """
     Met à jour une alerte.
     
     Args:
         alert_id: ID de l'alerte
-        title: Nouveau titre (optionnel)
-        message: Nouveau message (optionnel)
+        name: Nouveau nom (optionnel)
+        severity: Nouvelle sévérité (optionnel)
         due_date: Nouvelle date d'échéance (optionnel)
-        is_read: Marquer comme lue/non lue (optionnel)
-        priority: Nouvelle priorité (optionnel)
+        is_active: Activer/désactiver l'alerte (optionnel)
     """
     try:
         from uuid import UUID
         from app.schemas.alerts import AlertUpdate
+        from app.schemas.enums import AlertSeverity
         
         update_data = {}
-        if title is not None:
-            update_data["name"] = title
-        if message is not None:
-            update_data["message"] = message
+        if name is not None:
+            update_data["name"] = name
+        if severity is not None:
+            update_data["severity"] = AlertSeverity(severity)
         if due_date is not None:
             update_data["dueDate"] = due_date
-        if is_read is not None:
-            update_data["isRead"] = is_read
-        if priority is not None:
-            update_data["priority"] = priority
+        if is_active is not None:
+            update_data["isActive"] = is_active
         
         if not update_data:
             return {"status": "error", "message": "Aucun champ à modifier fourni"}
@@ -159,14 +151,14 @@ async def update_alert(
         return {"status": "error", "message": str(e)}
 
 
-async def mark_alert_as_read(alert_id: str) -> dict:
+async def deactivate_alert(alert_id: str) -> dict:
     """
-    Marque une alerte comme lue.
+    Désactive une alerte (la marque comme traitée).
     
     Args:
         alert_id: ID de l'alerte
     """
-    return await update_alert(alert_id, is_read=True)
+    return await update_alert(alert_id, is_active=False)
 
 
 async def delete_alert(alert_id: str) -> dict:

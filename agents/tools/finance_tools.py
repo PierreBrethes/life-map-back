@@ -93,12 +93,14 @@ async def add_transaction(
         from uuid import UUID
         from app.schemas.finance import HistoryEntryCreate
         
+        from app.schemas.enums import HistoryCategory
+        
         entry_data = HistoryEntryCreate(
             itemId=UUID(item_id),
             value=value,
             label=label,
             date=date,
-            category=category,
+            category=HistoryCategory(category),
         )
         
         async with get_async_session() as session:
@@ -240,14 +242,17 @@ async def create_recurring_transaction(
         from uuid import UUID
         from app.schemas.finance import RecurringTransactionCreate
         
+        from app.schemas.enums import HistoryCategory
+
         rec_data = RecurringTransactionCreate(
             targetAccountId=UUID(target_account_id),
             amount=amount,
             dayOfMonth=day_of_month,
             label=label,
-            category=category,
+            category=HistoryCategory(category),
             isActive=True,
             startDate=start_date or int(time.time() * 1000),
+            sourceType="custom", # Default source type
         )
         
         async with get_async_session() as session:

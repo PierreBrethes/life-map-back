@@ -63,7 +63,7 @@ from .alert_tools import (
     get_alert_by_id,
     create_alert,
     update_alert,
-    mark_alert_as_read,
+    deactivate_alert,
     delete_alert,
     get_upcoming_alerts,
 )
@@ -119,7 +119,7 @@ ALL_TOOLS = [
     get_alert_by_id,
     create_alert,
     update_alert,
-    mark_alert_as_read,
+    deactivate_alert,
     delete_alert,
     get_upcoming_alerts,
 ]
@@ -173,7 +173,7 @@ __all__ = [
     "get_alert_by_id",
     "create_alert",
     "update_alert",
-    "mark_alert_as_read",
+    "deactivate_alert",
     "delete_alert",
     "get_upcoming_alerts",
     

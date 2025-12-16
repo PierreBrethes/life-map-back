@@ -7,3 +7,4 @@ from app.models.finance import HistoryEntry, Subscription, RecurringTransaction
 from app.models.alerts import Alert
 from app.models.settings import UserSettings
 from app.models.real_estate import PropertyValuation, EnergyConsumption, MaintenanceTask
+from app.models.asset_config import AssetConfig

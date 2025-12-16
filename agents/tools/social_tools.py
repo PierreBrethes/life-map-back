@@ -14,10 +14,10 @@ def _serialize_event(event) -> dict:
         "id": str(event.id),
         "item_id": str(event.itemId) if event.itemId else None,
         "title": event.title,
+        "type": event.type.value if event.type else None,
         "date": event.date,
         "location": event.location if hasattr(event, 'location') else None,
-        "description": event.description if hasattr(event, 'description') else None,
-        "participants": event.participants if hasattr(event, 'participants') else [],
+        "contact_ids": event.contactIds if hasattr(event, 'contactIds') else [],
     }
 
 
@@ -27,10 +27,10 @@ def _serialize_contact(contact) -> dict:
         "id": str(contact.id),
         "item_id": str(contact.itemId) if contact.itemId else None,
         "name": contact.name,
-        "relationship": contact.relationship if hasattr(contact, 'relationship') else None,
-        "phone": contact.phone if hasattr(contact, 'phone') else None,
-        "email": contact.email if hasattr(contact, 'email') else None,
         "birthday": contact.birthday if hasattr(contact, 'birthday') else None,
+        "last_contact_date": contact.lastContactDate if hasattr(contact, 'lastContactDate') else None,
+        "contact_frequency_days": contact.contactFrequencyDays if hasattr(contact, 'contactFrequencyDays') else None,
+        "avatar": contact.avatar if hasattr(contact, 'avatar') else None,
         "notes": contact.notes if hasattr(contact, 'notes') else None,
     }
 
@@ -60,10 +60,10 @@ async def get_social_events(item_id: Optional[str] = None) -> dict:
 async def create_social_event(
     item_id: str,
     title: str,
+    event_type: str,
     date: int,
     location: Optional[str] = None,
-    description: Optional[str] = None,
-    participants: Optional[List[str]] = None
+    contact_ids: Optional[List[str]] = None
 ) -> dict:
     """
     Crée un événement social.
@@ -71,22 +71,23 @@ async def create_social_event(
     Args:
         item_id: ID de l'item social associé
         title: Titre de l'événement
+        event_type: Type d'événement (birthday, meeting, celebration, other)
         date: Date en timestamp milliseconds
         location: Lieu (optionnel)
-        description: Description (optionnel)
-        participants: Liste des participants (optionnel)
+        contact_ids: Liste des IDs de contacts (optionnel)
     """
     try:
         from uuid import UUID
         from app.schemas.social import SocialEventCreate
+        from app.schemas.enums import SocialEventType
         
         event_data = SocialEventCreate(
             itemId=UUID(item_id),
             title=title,
+            type=SocialEventType(event_type),
             date=date,
             location=location,
-            description=description,
-            participants=participants or [],
+            contactIds=[UUID(cid) for cid in contact_ids] if contact_ids else [],
         )
         
         async with get_async_session() as session:
@@ -101,9 +102,10 @@ async def create_social_event(
 async def update_social_event(
     event_id: str,
     title: Optional[str] = None,
+    event_type: Optional[str] = None,
     date: Optional[int] = None,
     location: Optional[str] = None,
-    description: Optional[str] = None
+    contact_ids: Optional[List[str]] = None
 ) -> dict:
     """
     Met à jour un événement social.
@@ -111,23 +113,27 @@ async def update_social_event(
     Args:
         event_id: ID de l'événement
         title: Nouveau titre (optionnel)
+        event_type: Nouveau type (optionnel)
         date: Nouvelle date (optionnel)
         location: Nouveau lieu (optionnel)
-        description: Nouvelle description (optionnel)
+        contact_ids: Nouvelle liste de contacts (optionnel)
     """
     try:
         from uuid import UUID
         from app.schemas.social import SocialEventUpdate
+        from app.schemas.enums import SocialEventType
         
         update_data = {}
         if title is not None:
             update_data["title"] = title
+        if event_type is not None:
+            update_data["type"] = SocialEventType(event_type)
         if date is not None:
             update_data["date"] = date
         if location is not None:
             update_data["location"] = location
-        if description is not None:
-            update_data["description"] = description
+        if contact_ids is not None:
+            update_data["contactIds"] = [UUID(cid) for cid in contact_ids]
         
         if not update_data:
             return {"status": "error", "message": "Aucun champ à modifier fourni"}
@@ -190,10 +196,9 @@ async def get_contacts(item_id: Optional[str] = None) -> dict:
 async def create_contact(
     item_id: str,
     name: str,
-    relationship: Optional[str] = None,
-    phone: Optional[str] = None,
-    email: Optional[str] = None,
     birthday: Optional[int] = None,
+    last_contact_date: Optional[int] = None,
+    contact_frequency_days: Optional[int] = None,
     notes: Optional[str] = None
 ) -> dict:
     """
@@ -202,10 +207,9 @@ async def create_contact(
     Args:
         item_id: ID de l'item social associé
         name: Nom du contact
-        relationship: Type de relation (ami, famille, collègue...)
-        phone: Numéro de téléphone
-        email: Email
         birthday: Date d'anniversaire (timestamp ms)
+        last_contact_date: Date du dernier contact (timestamp ms)
+        contact_frequency_days: Fréquence de contact souhaitée en jours
         notes: Notes
     """
     try:
@@ -215,10 +219,9 @@ async def create_contact(
         contact_data = ContactCreate(
             itemId=UUID(item_id),
             name=name,
-            relationship=relationship,
-            phone=phone,
-            email=email,
             birthday=birthday,
+            lastContactDate=last_contact_date,
+            contactFrequencyDays=contact_frequency_days,
             notes=notes,
         )
         
@@ -234,9 +237,9 @@ async def create_contact(
 async def update_contact(
     contact_id: str,
     name: Optional[str] = None,
-    relationship: Optional[str] = None,
-    phone: Optional[str] = None,
-    email: Optional[str] = None,
+    birthday: Optional[int] = None,
+    last_contact_date: Optional[int] = None,
+    contact_frequency_days: Optional[int] = None,
     notes: Optional[str] = None
 ) -> dict:
     """
@@ -245,9 +248,9 @@ async def update_contact(
     Args:
         contact_id: ID du contact
         name: Nouveau nom (optionnel)
-        relationship: Nouvelle relation (optionnel)
-        phone: Nouveau téléphone (optionnel)
-        email: Nouvel email (optionnel)
+        birthday: Nouvelle date d'anniversaire (optionnel)
+        last_contact_date: Nouvelle date de dernier contact (optionnel)
+        contact_frequency_days: Nouvelle fréquence de contact (optionnel)
         notes: Nouvelles notes (optionnel)
     """
     try:
@@ -257,12 +260,12 @@ async def update_contact(
         update_data = {}
         if name is not None:
             update_data["name"] = name
-        if relationship is not None:
-            update_data["relationship"] = relationship
-        if phone is not None:
-            update_data["phone"] = phone
-        if email is not None:
-            update_data["email"] = email
+        if birthday is not None:
+            update_data["birthday"] = birthday
+        if last_contact_date is not None:
+            update_data["lastContactDate"] = last_contact_date
+        if contact_frequency_days is not None:
+            update_data["contactFrequencyDays"] = contact_frequency_days
         if notes is not None:
             update_data["notes"] = notes
         

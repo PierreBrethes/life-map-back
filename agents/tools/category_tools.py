@@ -44,7 +44,14 @@ async def get_all_islands() -> dict:
         async with get_async_session() as session:
             service = CategoryService(session)
             categories = await service.get_categories()
-            islands = [_serialize_island(cat) for cat in categories]
+            # Serialize islands but exclude full item list for efficiency
+            islands = []
+            for cat in categories:
+                cat_dict = _serialize_island(cat)
+                # Remove full items list to save tokens, keep count
+                if "items" in cat_dict:
+                    del cat_dict["items"]
+                islands.append(cat_dict)
             
             return {
                 "status": "success",

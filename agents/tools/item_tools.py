@@ -14,12 +14,12 @@ def _serialize_item(item) -> dict:
         "id": str(item.id),
         "name": item.name,
         "value": item.value,
-        "status": item.status,
-        "icon": item.icon,
-        "color": item.color,
+        "type": item.type.value if item.type else None,
+        "status": item.status.value if item.status else None,
         "category_id": str(item.categoryId) if item.categoryId else None,
-        "asset_type": item.assetType,
+        "asset_type": item.assetType.value if item.assetType else None,
         "mileage": item.mileage,
+        "last_updated": item.lastUpdated,
     }
 
 
@@ -65,10 +65,9 @@ async def get_item_by_id(item_id: str) -> dict:
 async def create_item(
     name: str,
     category_id: str,
-    value: Optional[float] = None,
+    value: str = "",
+    value_type: str = "text",
     status: str = "ok",
-    icon: Optional[str] = None,
-    color: Optional[str] = None,
     asset_type: Optional[str] = None
 ) -> dict:
     """
@@ -77,24 +76,30 @@ async def create_item(
     Args:
         name: Nom de l'item
         category_id: ID de la catégorie (île) parent
-        value: Valeur numérique optionnelle
+        value: Valeur textuelle (défaut: "")
+        value_type: Type de la valeur ('text', 'currency', 'percentage', 'date')
         status: Statut de l'item ('ok', 'warning', 'critical')
-        icon: Icône optionnelle
-        color: Couleur optionnelle (hex)
-        asset_type: Type d'asset 3D optionnel
+        asset_type: Type d'asset 3D optionnel. Choix possibles :
+            - Véhicules : car, motorbike, boat, plane
+            - Immo : house, apartment
+            - Finance : current_account, savings, investments, debt, finance
+            - Pro : job, freelance, tech
+            - Santé : medical, sport, insurance, health
+            - Social : family, friends, pet, people
+            - Divers : nature, default
     """
     try:
         from uuid import UUID
         from app.schemas.items import LifeItemCreate
+        from app.schemas.enums import ItemType, ItemStatus, AssetType
         
         item_data = LifeItemCreate(
             name=name,
             categoryId=UUID(category_id),
-            status=status,
-            value=str(value) if value is not None else None,
-            icon=icon,
-            color=color,
-            assetType=asset_type,
+            type=ItemType(value_type),
+            status=ItemStatus(status),
+            value=value,
+            assetType=AssetType(asset_type) if asset_type else None,
         )
         
         async with get_async_session() as session:
@@ -109,10 +114,8 @@ async def create_item(
 async def update_item(
     item_id: str,
     name: Optional[str] = None,
-    value: Optional[float] = None,
+    value: Optional[str] = None,
     status: Optional[str] = None,
-    icon: Optional[str] = None,
-    color: Optional[str] = None,
     mileage: Optional[int] = None
 ) -> dict:
     """
@@ -121,27 +124,22 @@ async def update_item(
     Args:
         item_id: ID de l'item à modifier
         name: Nouveau nom (optionnel)
-        value: Nouvelle valeur (optionnel)
+        value: Nouvelle valeur textuelle (optionnel)
         status: Nouveau statut ('ok', 'warning', 'critical') (optionnel)
-        icon: Nouvelle icône (optionnel)
-        color: Nouvelle couleur (optionnel)
         mileage: Nouveau kilométrage pour véhicules (optionnel)
     """
     try:
         from uuid import UUID
         from app.schemas.items import LifeItemUpdate
+        from app.schemas.enums import ItemStatus
         
         update_data = {}
         if name is not None:
             update_data["name"] = name
         if value is not None:
-            update_data["value"] = str(value)
+            update_data["value"] = value
         if status is not None:
-            update_data["status"] = status
-        if icon is not None:
-            update_data["icon"] = icon
-        if color is not None:
-            update_data["color"] = color
+            update_data["status"] = ItemStatus(status)
         if mileage is not None:
             update_data["mileage"] = mileage
         
