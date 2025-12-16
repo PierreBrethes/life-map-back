@@ -5,7 +5,7 @@ from typing import Dict
 
 from app.core.database import get_db as get_async_session
 from app.models.asset_config import AssetConfig
-from app.schemas.asset_config import AssetConfig as AssetConfigSchema, AssetConfigUpdate, FrontendAssetConfig
+from app.schemas.asset_config import AssetConfig as AssetConfigSchema, AssetConfigUpdate, FrontendAssetConfig, AssetConfigUpdateInput
 
 router = APIRouter()
 
@@ -65,7 +65,7 @@ async def get_all_asset_configs(session: AsyncSession = Depends(get_async_sessio
 @router.put("/config/{asset_type}", response_model=FrontendAssetConfig)
 async def update_asset_config(
     asset_type: str,
-    updates: AssetConfigUpdate,
+    updates: AssetConfigUpdateInput,
     session: AsyncSession = Depends(get_async_session)
 ):
     result = await session.execute(select(AssetConfig).where(AssetConfig.asset_type == asset_type))
@@ -74,14 +74,20 @@ async def update_asset_config(
     if not config:
         raise HTTPException(status_code=404, detail="Asset config not found")
     
+    # Apply updates from nested structure to flat DB structure
     config.scale = updates.scale
-    config.position_x = updates.position_x
-    config.position_y = updates.position_y
-    config.position_z = updates.position_z
-    config.rotation_x = updates.rotation_x
-    config.rotation_y = updates.rotation_y
-    config.rotation_z = updates.rotation_z
-    config.preview_scale = updates.preview_scale
+    
+    # Position
+    config.position_x = updates.position[0]
+    config.position_y = updates.position[1]
+    config.position_z = updates.position[2]
+    
+    # Rotation
+    config.rotation_x = updates.rotation[0]
+    config.rotation_y = updates.rotation[1]
+    config.rotation_z = updates.rotation[2]
+    
+    config.preview_scale = updates.previewScale
     
     await session.commit()
     await session.refresh(config)

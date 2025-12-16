@@ -37,3 +37,10 @@ class FrontendAssetConfig(BaseModel):
     position: Tuple[float, float, float]
     rotation: Tuple[float, float, float]
     previewScale: float
+
+class AssetConfigUpdateInput(BaseModel):
+    scale: float
+    position: Tuple[float, float, float]
+    rotation: Tuple[float, float, float]
+    previewScale: float
+
