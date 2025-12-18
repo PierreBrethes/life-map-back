@@ -4,7 +4,7 @@ from app.core.config import settings
 class GeminiService:
     def __init__(self):
         genai.configure(api_key=settings.GOOGLE_API_KEY)
-        self.model = genai.GenerativeModel('gemini-1.5-flash')
+        self.model = genai.GenerativeModel(settings.GEMINI_MODEL)
 
     async def generate_response(self, prompt: str) -> str:
         # L'appel est asynchrone pour ne pas bloquer le serveur
