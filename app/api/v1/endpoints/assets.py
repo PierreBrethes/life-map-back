@@ -72,22 +72,41 @@ async def update_asset_config(
     config = result.scalar_one_or_none()
     
     if not config:
-        raise HTTPException(status_code=404, detail="Asset config not found")
-    
-    # Apply updates from nested structure to flat DB structure
-    config.scale = updates.scale
-    
-    # Position
-    config.position_x = updates.position[0]
-    config.position_y = updates.position[1]
-    config.position_z = updates.position[2]
-    
-    # Rotation
-    config.rotation_x = updates.rotation[0]
-    config.rotation_y = updates.rotation[1]
-    config.rotation_z = updates.rotation[2]
-    
-    config.preview_scale = updates.previewScale
+        # Create new config if provided glbPath is sufficient, or error if not
+        if not updates.glbPath:
+             raise HTTPException(status_code=404, detail="Asset config not found and no glbPath provided for creation")
+        
+        config = AssetConfig(
+            asset_type=asset_type,
+            glb_path=updates.glbPath,
+            scale=updates.scale,
+            position_x=updates.position[0],
+            position_y=updates.position[1],
+            position_z=updates.position[2],
+            rotation_x=updates.rotation[0],
+            rotation_y=updates.rotation[1],
+            rotation_z=updates.rotation[2],
+            preview_scale=updates.previewScale
+        )
+        session.add(config)
+    else:
+        # Apply updates
+        if updates.glbPath:
+            config.glb_path = updates.glbPath
+            
+        config.scale = updates.scale
+        
+        # Position
+        config.position_x = updates.position[0]
+        config.position_y = updates.position[1]
+        config.position_z = updates.position[2]
+        
+        # Rotation
+        config.rotation_x = updates.rotation[0]
+        config.rotation_y = updates.rotation[1]
+        config.rotation_z = updates.rotation[2]
+        
+        config.preview_scale = updates.previewScale
     
     await session.commit()
     await session.refresh(config)

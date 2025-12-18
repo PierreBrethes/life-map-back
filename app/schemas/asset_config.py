@@ -43,4 +43,5 @@ class AssetConfigUpdateInput(BaseModel):
     position: Tuple[float, float, float]
     rotation: Tuple[float, float, float]
     previewScale: float
+    glbPath: str | None = None
 

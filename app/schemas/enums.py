@@ -58,6 +58,9 @@ class AssetType(str, Enum):
     NATURE = 'nature'
     TECH = 'tech'
     PEOPLE = 'people'
+    # Items / Tools
+    WRENCH = 'wrench'
+    SCREWS = 'screws'
 
 class WidgetType(str, Enum):
     HISTORY = 'history'

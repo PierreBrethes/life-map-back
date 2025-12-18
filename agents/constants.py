@@ -5,11 +5,11 @@ Centralized configuration values to avoid magic strings and numbers.
 """
 
 # === MODEL CONFIGURATION ===
-MODEL_NAME = "gemini-2.5-flash"
+MODEL_NAME = "gemini-2.5-pro"
 
 # === AGENT IDENTITY ===
 AGENT_NAME = "life_agent"
-AGENT_DESCRIPTION = "LifeMap Assistant - Helps users manage and visualize their life data through islands."
+AGENT_DESCRIPTION = "Taco - LifeMap's friendly robot companion. Helps users build their 3D life universe."
 
 # === API CONFIGURATION ===
 BACKEND_HOST = "localhost"

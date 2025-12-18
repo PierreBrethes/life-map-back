@@ -64,7 +64,8 @@ async def get_item_by_id(item_id: str) -> dict:
 
 async def create_item(
     name: str,
-    category_id: str,
+    category_id: Optional[str] = None,
+    category_name: Optional[str] = None,
     value: str = "",
     value_type: str = "text",
     status: str = "ok",
@@ -75,7 +76,8 @@ async def create_item(
     
     Args:
         name: Nom de l'item
-        category_id: ID de la catégorie (île) parent
+        category_id: ID de la catégorie (île) parent (Optionnel si category_name fourni)
+        category_name: Nom de la catégorie (île) parent (ex: "Garage", "Immobilier")
         value: Valeur textuelle (défaut: "")
         value_type: Type de la valeur ('text', 'currency', 'percentage', 'date')
         status: Statut de l'item ('ok', 'warning', 'critical')
@@ -92,17 +94,39 @@ async def create_item(
         from uuid import UUID
         from app.schemas.items import LifeItemCreate
         from app.schemas.enums import ItemType, ItemStatus, AssetType
-        
-        item_data = LifeItemCreate(
-            name=name,
-            categoryId=UUID(category_id),
-            type=ItemType(value_type),
-            status=ItemStatus(status),
-            value=value,
-            assetType=AssetType(asset_type) if asset_type else None,
-        )
+        from app.services.category_service import CategoryService
         
         async with get_async_session() as session:
+            # Resolve Category ID if not provided
+            target_category_id = None
+            
+            if category_id:
+                target_category_id = UUID(category_id)
+            elif category_name:
+                cat_service = CategoryService(session)
+                categories = await cat_service.get_categories()
+                for cat in categories:
+                    if cat.name.lower() == category_name.lower():
+                        target_category_id = cat.id
+                        break
+                
+                if not target_category_id:
+                    return {
+                        "status": "error", 
+                        "message": f"Catégorie '{category_name}' introuvable. Créez-la d'abord avec create_island."
+                    }
+            else:
+                return {"status": "error", "message": "Vous devez fournir category_id OU category_name"}
+
+            item_data = LifeItemCreate(
+                name=name,
+                categoryId=target_category_id,
+                type=ItemType(value_type),
+                status=ItemStatus(status),
+                value=value,
+                assetType=AssetType(asset_type) if asset_type else None,
+            )
+        
             service = ItemService(session)
             item = await service.create_item(item_data)
             
