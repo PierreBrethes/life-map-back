@@ -31,8 +31,11 @@ COPY . .
 # Make entrypoint executable (and fix Windows line endings)
 RUN sed -i 's/\r$//' entrypoint.sh && chmod +x entrypoint.sh
 
-# Create a non-root user
-RUN adduser --disabled-password --gecos "" appuser
+# Create directories the app needs to write to at runtime
+RUN mkdir -p /app/.adk/artifacts
+
+# Create a non-root user and give it ownership of the app dir
+RUN adduser --disabled-password --gecos "" appuser && chown -R appuser:appuser /app
 USER appuser
 
 # Entrypoint runs migrations, then CMD starts the server
