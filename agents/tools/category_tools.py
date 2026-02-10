@@ -3,9 +3,12 @@ Category (Island) tools for the LifeMap ADK Agent.
 
 Async tools that directly call services with database sessions.
 """
+import logging
 from typing import Optional
 from agents.dependencies import get_async_session
 from app.services.category_service import CategoryService
+
+logger = logging.getLogger(__name__)
 
 
 def _serialize_island(category) -> dict:
@@ -130,10 +133,13 @@ async def create_island(
         async with get_async_session() as session:
             service = CategoryService(session)
             category_data = CategoryCreate(name=name, color=color, icon=icon)
+            logger.info(f"[TOOL] create_island called: name={name}, color={color}, icon={icon}")
             category = await service.create_category(category_data)
             
+            logger.info(f"[TOOL] create_island SUCCESS: {category.name} (id={category.id})")
             return {"status": "success", "island": _serialize_island(category)}
     except Exception as e:
+        logger.error(f"[TOOL] create_island ERROR: {e}")
         return {"status": "error", "message": str(e)}
 
 

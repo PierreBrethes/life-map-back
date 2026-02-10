@@ -3,9 +3,12 @@ Item tools for the LifeMap ADK Agent.
 
 Async tools that directly call ItemService with database sessions.
 """
+import logging
 from typing import Optional
 from agents.dependencies import get_async_session
 from app.services.item_service import ItemService
+
+logger = logging.getLogger(__name__)
 
 
 def _serialize_item(item) -> dict:
@@ -96,6 +99,8 @@ async def create_item(
         from app.schemas.enums import ItemType, ItemStatus, AssetType
         from app.services.category_service import CategoryService
         
+        logger.info(f"[TOOL] create_item called: name={name}, category_id={category_id}, category_name={category_name}, asset_type={asset_type}")
+        
         async with get_async_session() as session:
             # Resolve Category ID if not provided
             target_category_id = None
@@ -130,8 +135,10 @@ async def create_item(
             service = ItemService(session)
             item = await service.create_item(item_data)
             
+            logger.info(f"[TOOL] create_item SUCCESS: {item.name} (id={item.id})")
             return {"status": "success", "item": _serialize_item(item)}
     except Exception as e:
+        logger.error(f"[TOOL] create_item ERROR: {e}")
         return {"status": "error", "message": str(e)}
 
 
