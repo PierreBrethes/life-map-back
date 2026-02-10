@@ -5,7 +5,7 @@ Centralized configuration values to avoid magic strings and numbers.
 """
 
 # === MODEL CONFIGURATION ===
-MODEL_NAME = "gemini-2.5-pro"
+MODEL_NAME = "gemini-2.5-flash"
 
 # === AGENT IDENTITY ===
 AGENT_NAME = "life_agent"
