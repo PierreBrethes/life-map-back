@@ -85,8 +85,24 @@ def upgrade() -> None:
         if 'widget_order' not in existing_columns:
             op.add_column('life_items', sa.Column('widget_order', postgresql.JSONB(), nullable=True))
 
+    # Dependencies table
+    if 'dependencies' not in existing_tables:
+        op.create_table('dependencies',
+            sa.Column('id', postgresql.UUID(as_uuid=True), nullable=False),
+            sa.Column('from_category_id', postgresql.UUID(as_uuid=True), nullable=False),
+            sa.Column('from_item_id', postgresql.UUID(as_uuid=True), nullable=False),
+            sa.Column('to_category_id', postgresql.UUID(as_uuid=True), nullable=False),
+            sa.Column('to_item_id', postgresql.UUID(as_uuid=True), nullable=False),
+            sa.ForeignKeyConstraint(['from_category_id'], ['categories.id']),
+            sa.ForeignKeyConstraint(['from_item_id'], ['life_items.id']),
+            sa.ForeignKeyConstraint(['to_category_id'], ['categories.id']),
+            sa.ForeignKeyConstraint(['to_item_id'], ['life_items.id']),
+            sa.PrimaryKeyConstraint('id')
+        )
+
 
 def downgrade() -> None:
     """Downgrade removes all tables - use with caution!"""
+    op.drop_table('dependencies')
     op.drop_table('life_items')
     op.drop_table('categories')

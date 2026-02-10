@@ -23,9 +23,15 @@ depends_on: Union[str, Sequence[str], None] = None
 
 
 def upgrade() -> None:
-    # Check existing columns
     conn = op.get_bind()
     inspector = sa.inspect(conn)
+
+    # If the dependencies table doesn't exist yet, skip — it will be
+    # created by 001_initial with all columns already present.
+    if 'dependencies' not in inspector.get_table_names():
+        return
+
+    # Check existing columns
     existing_columns = [col['name'] for col in inspector.get_columns('dependencies')]
     
     # Add description column
@@ -64,9 +70,18 @@ def upgrade() -> None:
 
 
 def downgrade() -> None:
-    op.drop_column('dependencies', 'linked_item_id')
-    op.drop_column('dependencies', 'link_type')
-    op.drop_column('dependencies', 'description')
+    conn = op.get_bind()
+    inspector = sa.inspect(conn)
+    if 'dependencies' not in inspector.get_table_names():
+        return
+
+    existing_columns = [col['name'] for col in inspector.get_columns('dependencies')]
+    if 'linked_item_id' in existing_columns:
+        op.drop_column('dependencies', 'linked_item_id')
+    if 'link_type' in existing_columns:
+        op.drop_column('dependencies', 'link_type')
+    if 'description' in existing_columns:
+        op.drop_column('dependencies', 'description')
     
     # Drop enum type
     op.execute('DROP TYPE IF EXISTS linktype')

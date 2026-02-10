@@ -25,6 +25,13 @@ def get_foreign_key_name(table_name, column_name):
     return None
 
 def upgrade() -> None:
+    conn = op.get_bind()
+    inspector = Inspector.from_engine(conn)
+
+    # If the dependencies table doesn't exist, skip this migration
+    if 'dependencies' not in inspector.get_table_names():
+        return
+
     # 1. Update dependencies foreign keys
     # (column, ref_table, ref_column)
     dep_fks = [
