@@ -30,17 +30,6 @@ logger = logging.getLogger(__name__)
 # === Configuration ===
 HOST = "127.0.0.1"
 PORT = 8000
-ALLOW_ORIGINS = [
-    "http://localhost:5173",
-    "http://127.0.0.1:5173",
-    "http://localhost:3000",
-    "http://localhost:8000",
-    "http://localhost:8080",
-]
-
-# Allow all origins in DEBUG mode
-if settings.DEBUG:
-    ALLOW_ORIGINS = ["*"]
 
 scheduler = AsyncIOScheduler()
 
@@ -59,7 +48,7 @@ AGENTS_DIR = str(Path(__file__).resolve().parent.parent)
 
 app = get_fast_api_app(
     agents_dir=AGENTS_DIR,
-    allow_origins=ALLOW_ORIGINS,
+    allow_origins=settings.cors_origins_list,
     web=True,  # Enable ADK Dev UI at /dev-ui
 )
 
