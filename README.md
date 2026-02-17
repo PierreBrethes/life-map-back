@@ -69,6 +69,12 @@ docker-compose up --build
 
 ### 💻 Local Development
 
+Oprionnal : create and activate venv :
+```bach
+python3 -m venv .venv
+source .venv/bin/activate
+```
+
 1.  **Install Dependencies**:
     ```bash
     pip install poetry
@@ -77,7 +83,7 @@ docker-compose up --build
 
 2.  **Run Server**:
     ```bash
-    poetry run uvicorn app.main:app --reload
+    poetry run uvicorn app.server:app --reload
     ```
 
 ## 🗄 Database Migrations (Alembic)

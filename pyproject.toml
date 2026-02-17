@@ -19,6 +19,8 @@ apscheduler = "^3.10.4"  # For CRON job scheduling
 alembic = "^1.17.2"
 deprecated = "^1.2.0"  # Required by google-adk
 google-adk = "1.21.0"  # Google Agent Development Kit (includes httpx)
+greenlet = "^3.3.1"
+psycopg2-binary = "^2.9.11"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.0.0"
