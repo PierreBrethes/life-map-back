@@ -7,7 +7,7 @@ class GeminiService:
         self.model = genai.GenerativeModel(settings.GEMINI_MODEL)
 
     async def generate_response(self, prompt: str) -> str:
-        # L'appel est asynchrone pour ne pas bloquer le serveur
+        # The call is asynchronous to avoid blocking the server
         # Note: google-generativeai may not be fully async native in all versions, 
         # but wrapping in a thread or using async methods if provided is key. 
         # The library now supports async methods.

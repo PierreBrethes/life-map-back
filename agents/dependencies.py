@@ -5,6 +5,7 @@ Provides async database session and service factories for direct service calls.
 This avoids HTTP calls and enables direct database access from agent tools.
 """
 from contextlib import asynccontextmanager
+import contextvars
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker
 from app.core.config import settings
 
@@ -24,10 +25,21 @@ _SessionFactory = async_sessionmaker(
     autoflush=False,
 )
 
+# Global context var for the current turn session
+_agent_session_ctx = contextvars.ContextVar("_agent_session_ctx", default=None)
 
 @asynccontextmanager
 async def get_async_session():
-    """Get an async database session for agent tools."""
+    """Get an async database session for agent tools.
+    Reuses existing session if available in context, otherwise creates a new one.
+    """
+    ctx_session = _agent_session_ctx.get()
+    if ctx_session is not None:
+        # Reusing the existing context session
+        yield ctx_session
+        return
+
+    # No session in context, creating a new standalone one
     async with _SessionFactory() as session:
         try:
             yield session

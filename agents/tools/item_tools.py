@@ -7,6 +7,9 @@ import logging
 from typing import Optional
 from agents.dependencies import get_async_session
 from app.services.item_service import ItemService
+from app.schemas.enums import ItemType, ItemStatus, AssetType
+from app.schemas.items import LifeItemCreate, LifeItemUpdate
+from uuid import UUID
 
 logger = logging.getLogger(__name__)
 
@@ -52,7 +55,6 @@ async def get_item_by_id(item_id: str) -> dict:
         item_id: L'identifiant UUID de l'item à récupérer
     """
     try:
-        from uuid import UUID
         async with get_async_session() as session:
             service = ItemService(session)
             item = await service.get_item(UUID(item_id))
@@ -82,8 +84,8 @@ async def create_item(
         category_id: ID de la catégorie (île) parent (Optionnel si category_name fourni)
         category_name: Nom de la catégorie (île) parent (ex: "Garage", "Immobilier")
         value: Valeur textuelle (défaut: "")
-        value_type: Type de la valeur ('text', 'currency', 'percentage', 'date')
-        status: Statut de l'item ('ok', 'warning', 'critical')
+        value_type: Type de la valeur. Valeurs possibles : 'text', 'currency', 'percentage', 'date' (défaut: 'text')
+        status: Statut de l'item. Valeurs possibles : 'ok', 'warning', 'critical' (défaut: 'ok')
         asset_type: Type d'asset 3D optionnel. Choix possibles :
             - Véhicules : car, motorbike, boat, plane
             - Immo : house, apartment
@@ -94,12 +96,28 @@ async def create_item(
             - Divers : nature, default
     """
     try:
-        from uuid import UUID
-        from app.schemas.items import LifeItemCreate
-        from app.schemas.enums import ItemType, ItemStatus, AssetType
         from app.services.category_service import CategoryService
+
+        # --- COERCE strings to Enum types (ADK passes args as raw strings) ---
+        try:
+            resolved_value_type = ItemType(value_type) if value_type else ItemType.TEXT
+        except ValueError:
+            return {"status": "error", "message": f"Type de valeur inconnu: '{value_type}'. Valeurs valides: {[e.value for e in ItemType]}"}
+
+        try:
+            resolved_status = ItemStatus(status) if status else ItemStatus.OK
+        except ValueError:
+            return {"status": "error", "message": f"Statut inconnu: '{status}'. Valeurs valides: {[e.value for e in ItemStatus]}"}
+
+        resolved_asset_type = None
+        if asset_type:
+            try:
+                resolved_asset_type = AssetType(asset_type)
+            except ValueError:
+                return {"status": "error", "message": f"Asset type inconnu: '{asset_type}'. Valeurs valides: {[e.value for e in AssetType]}"}
+        # --- END COERCE ---
         
-        logger.info(f"[TOOL] create_item called: name={name}, category_id={category_id}, category_name={category_name}, asset_type={asset_type}")
+        logger.info(f"[TOOL] create_item called: name={name}, category_id={category_id}, category_name={category_name}, asset_type={resolved_asset_type}, value_type={resolved_value_type}")
         
         async with get_async_session() as session:
             # Resolve Category ID if not provided
@@ -126,10 +144,10 @@ async def create_item(
             item_data = LifeItemCreate(
                 name=name,
                 categoryId=target_category_id,
-                type=ItemType(value_type),
-                status=ItemStatus(status),
+                type=resolved_value_type,
+                status=resolved_status,
                 value=value,
-                assetType=AssetType(asset_type) if asset_type else None,
+                assetType=resolved_asset_type,
             )
         
             service = ItemService(session)
@@ -146,7 +164,7 @@ async def update_item(
     item_id: str,
     name: Optional[str] = None,
     value: Optional[str] = None,
-    status: Optional[str] = None,
+    status: Optional[ItemStatus] = None,
     mileage: Optional[int] = None
 ) -> dict:
     """
@@ -160,9 +178,6 @@ async def update_item(
         mileage: Nouveau kilométrage pour véhicules (optionnel)
     """
     try:
-        from uuid import UUID
-        from app.schemas.items import LifeItemUpdate
-        from app.schemas.enums import ItemStatus
         
         update_data = {}
         if name is not None:
@@ -170,7 +185,7 @@ async def update_item(
         if value is not None:
             update_data["value"] = value
         if status is not None:
-            update_data["status"] = ItemStatus(status)
+            update_data["status"] = status
         if mileage is not None:
             update_data["mileage"] = mileage
         
@@ -197,7 +212,6 @@ async def delete_item(item_id: str) -> dict:
         item_id: ID de l'item à supprimer
     """
     try:
-        from uuid import UUID
         async with get_async_session() as session:
             service = ItemService(session)
             success = await service.delete_item(UUID(item_id))

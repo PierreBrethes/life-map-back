@@ -29,7 +29,7 @@ class Dependency(Base):
     toItemId = Column("to_item_id", UUID(as_uuid=True), ForeignKey("life_items.id", ondelete="CASCADE"), nullable=False)
     
     # Link metadata
-    description = Column(String, nullable=True)  # "Assurance auto", "Prélèvement mensuel", etc.
+    description = Column(String, nullable=True)  # "Car insurance", "Monthly debit", etc.
     linkType = Column(
         "link_type", 
         SqEnum(LinkType, values_callable=lambda x: [e.value for e in x]), 
