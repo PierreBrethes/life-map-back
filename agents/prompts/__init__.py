@@ -19,9 +19,27 @@ def load_prompt(filename: str) -> str:
 
 def get_system_instruction() -> str:
     """
-    Build the complete system instruction by loading and assembling prompts.
+    Build the root agent (orchestrator) system instruction.
+    The system.md is now self-contained — no tools_description injection needed.
     """
-    system_template = load_prompt("system.md")
-    tools_description = load_prompt("tools.md")
-    
-    return system_template.format(tools_description=tools_description)
+    return load_prompt("system.md")
+
+
+def get_finance_instruction() -> str:
+    """Load the Finance sub-agent prompt."""
+    return load_prompt("finance.md")
+
+
+def get_health_instruction() -> str:
+    """Load the Health sub-agent prompt."""
+    return load_prompt("health.md")
+
+
+def get_social_instruction() -> str:
+    """Load the Social sub-agent prompt."""
+    return load_prompt("social.md")
+
+
+def get_alerts_instruction() -> str:
+    """Load the Alerts sub-agent prompt."""
+    return load_prompt("alerts.md")

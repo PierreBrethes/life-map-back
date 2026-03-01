@@ -164,8 +164,9 @@ async def update_item(
     item_id: str,
     name: Optional[str] = None,
     value: Optional[str] = None,
-    status: Optional[ItemStatus] = None,
-    mileage: Optional[int] = None
+    status: Optional[str] = None,
+    mileage: Optional[int] = None,
+    asset_type: Optional[str] = None
 ) -> dict:
     """
     Met à jour un item existant.
@@ -176,18 +177,26 @@ async def update_item(
         value: Nouvelle valeur textuelle (optionnel)
         status: Nouveau statut ('ok', 'warning', 'critical') (optionnel)
         mileage: Nouveau kilométrage pour véhicules (optionnel)
+        asset_type: Nouveau type d'asset 3D (optionnel)
     """
     try:
-        
         update_data = {}
         if name is not None:
             update_data["name"] = name
         if value is not None:
             update_data["value"] = value
         if status is not None:
-            update_data["status"] = status
+            try:
+                update_data["status"] = ItemStatus(status)
+            except ValueError:
+                return {"status": "error", "message": f"Statut inconnu: '{status}'. Valeurs valides: {[e.value for e in ItemStatus]}"}
         if mileage is not None:
             update_data["mileage"] = mileage
+        if asset_type is not None:
+            try:
+                update_data["assetType"] = AssetType(asset_type)
+            except ValueError:
+                return {"status": "error", "message": f"Asset type inconnu: '{asset_type}'. Valeurs valides: {[e.value for e in AssetType]}"}
         
         if not update_data:
             return {"status": "error", "message": "Aucun champ à modifier fourni"}

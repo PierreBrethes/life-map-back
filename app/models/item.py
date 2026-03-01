@@ -16,11 +16,11 @@ class LifeItem(Base):
     
     # Relationship
     category = relationship("Category", back_populates="items")
-    type = Column(SqEnum(ItemType), nullable=False)
-    status = Column(SqEnum(ItemStatus), default=ItemStatus.OK)
+    type = Column(SqEnum(ItemType, values_callable=lambda x: [e.value for e in x]), nullable=False)
+    status = Column(SqEnum(ItemStatus, values_callable=lambda x: [e.value for e in x]), default=ItemStatus.OK)
     
     # Using camelCase attributes to match Pydantic schema, mapped to snake_case columns
-    assetType = Column("asset_type", SqEnum(AssetType), nullable=True)
+    assetType = Column("asset_type", SqEnum(AssetType, values_callable=lambda x: [e.value for e in x]), nullable=True)
     lastUpdated = Column("last_updated", Integer, nullable=True)
     
     # Notification

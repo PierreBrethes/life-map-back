@@ -78,7 +78,7 @@ async def create_alert(
     Args:
         item_id: ID de l'item associé
         name: Nom de l'alerte
-        severity: Sévérité ('low', 'medium', 'high', 'critical')
+        severity: Sévérité ('warning' ou 'critical')
         due_date: Date d'échéance (timestamp ms, optionnel)
         is_active: Si l'alerte est active (défaut: True)
     """

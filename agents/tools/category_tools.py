@@ -20,8 +20,8 @@ def _serialize_island(category) -> dict:
                 "id": str(item.id),
                 "name": item.name,
                 "value": item.value,
-                "status": item.status,
-                "asset_type": item.assetType,
+                "status": item.status.value if item.status else None,
+                "asset_type": item.assetType.value if item.assetType else None,
             }
             for item in category.items
         ]
